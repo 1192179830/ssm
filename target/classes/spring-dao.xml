@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--1. 使用context:property下的location加载配置文件数据库-->
+    <context:property-placeholder location="classpath:db.properties"/>
+
+    <!--2.设置连接池-->
+    <bean id="dataSourcep" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+<!--    &lt;!&ndash;3..生产SqlSessionFactoryBean&ndash;&gt;-->
+<!--    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">-->
+<!--        &lt;!&ndash;加载dataSource&ndash;&gt;-->
+<!--        <property name="dataSource" ref="dataSourcep"/>-->
+<!--        &lt;!&ndash;加载Mybatis配置文件&ndash;&gt;-->
+<!--        <property name="configLocation" value="classpath:mybatis-config.xml"/>-->
+<!--    </bean>-->
+
+    <!-- 3.配置SqlSessionFactory对象 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 注入数据库连接池 -->
+        <property name="dataSource" ref="dataSourcep"/>
+        <!-- 配置MyBaties全局配置文件:mybatis-config.xml -->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--扫描Mapper文件-->
+        <property name="mapperLocations" value="classpath:com/ybzn/dao/*.xml"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--扫描dao接口的实现，加入IOC容器中-->
+        <property name="basePackage" value="com.ybzn.dao"></property>
+    </bean>
+
+    <!--配置一个开源批量的SqlSession-->
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+        <constructor-arg name="executorType" value="BATCH"/>
+    </bean>
+</beans>
